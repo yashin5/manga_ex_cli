@@ -7,11 +7,11 @@ defmodule MangaExCli.CliUI do
   @error_color 9
 
   def draw_input(
-        message \\ "",
-        error_message \\ false,
-        input \\ false,
-        options \\ false,
-        input_row \\ false
+        message,
+        type,
+        input_row \\ 0,
+        error \\ false
+
       ) do
     {rows, cols} = screen_size()
 
@@ -20,68 +20,74 @@ defmodule MangaExCli.CliUI do
     row = Float.floor(rows / 2) |> trunc()
     column = Float.floor((cols - @input_size) / 2) |> trunc()
 
-    # move the cursor to that position and draw the label
-    if message !== "" do
-      if options do
-        IO.puts("\n\n")
+    input(message, type, column, row, input_row, error)
+  end
 
-        IO.puts(IO.ANSI.cursor(row + 5, column) <> IO.ANSI.color(50) <> "Options")
+  defp input(error_message, :error, column, row, input_row, error) do
+      IO.write(IO.ANSI.color_background(@background_color) <> "")
 
-        message
-        |> Enum.zip(7..200)
-        |> Enum.each(fn {option, index} ->
-          IO.puts(IO.ANSI.cursor(row + index, column) <> IO.ANSI.color(@label_color) <> option)
-        end)
+      input_box(column, input_row + row - 1)
+  end
 
-        IO.puts("\n\n")
-      else
-        unless input_row do
-          IO.write(IO.ANSI.cursor(row, column) <> IO.ANSI.color(@label_color) <> message)
+  defp input(message, :input_box, column, row, input_row, error) do
+    line_to_skip = if input_row >= 10, do: 3, else: 9
+    (0..line_to_skip)
+    |> Enum.each(fn i -> IO.puts "\n" end)
 
-          IO.puts("\n")
-        end
-      end
+
+    if error do
+      message(message, column, row, input_row)
+
+      IO.puts(
+        IO.ANSI.cursor(input_row + row + 1, column) <> IO.ANSI.cursor_down() <>
+          IO.ANSI.color_background(@error_color) <> IO.ANSI.color(@label_color) <> "Wrong option. try again"
+      )
+
+      input_box(column, input_row + row)
+    else
+      message(message, column, row, input_row)
+
+      input_box(column, input_row + row)
     end
 
-    if input do
-      if input_row do
-        IO.puts("\n")
+  end
 
-        IO.write(
-          IO.ANSI.cursor(input_row + 1 + row, column) <> IO.ANSI.color(50) <> message
-        )
+  defp message(message, column, row, input_row \\ 0) do
+    IO.puts("\n")
 
-        IO.puts IO.ANSI.color_background(@background_color) <> ""
-    IO.write(IO.ANSI.cursor(input_row + 2 + row, column) <> IO.ANSI.color_background(@input_color) <> IO.ANSI.color(@input_text_color))
-      else
-        input_box(column, row)
-      end
-    end
+    IO.write(IO.ANSI.cursor(input_row + row, column) <> IO.ANSI.color(50) <> message)
 
-    if error_message  do
-      if input_row do
-        IO.puts(
-          IO.ANSI.cursor(input_row + 3 + row, column) <>
-            IO.ANSI.color_background(@error_color) <> IO.ANSI.color(@label_color) <> error_message
-        )
+    IO.puts(IO.ANSI.color_background(@background_color) <> "")
+  end
 
-        input_box(column, row + input_row - 1)
+  defp input(message, :message, column, row, input_row, error) do
+    unless input_row do
+      IO.write(IO.ANSI.cursor(row, column) <> IO.ANSI.color(@label_color) <> message)
 
-    IO.puts IO.ANSI.color_background(@background_color) <> ""
-    IO.write(IO.ANSI.cursor(input_row + 2 + row, column) <> IO.ANSI.color_background(@input_color) <> IO.ANSI.color(@input_text_color))
+      IO.puts("\n")
     end
   end
+
+  defp input(messages, :options, column, row, _input_row, error) do
+    IO.puts(IO.ANSI.cursor(row + 7, column) <> IO.ANSI.color(50) <> "Options")
+
+    messages
+    |> Enum.zip(9..20000)
+    |> Enum.each(fn {option, index} ->
+      IO.puts(IO.ANSI.cursor(row + index, column) <> IO.ANSI.color(@label_color) <> option)
+    end)
   end
 
   defp input_box(column, row) do
     # move the cursor down a line and draw the input
     IO.write(
-      IO.ANSI.cursor(row + 3, column) <>
+      IO.ANSI.cursor(row + 1, column) <>
         IO.ANSI.color_background(@input_color) <> String.duplicate(" ", @input_size)
     )
 
     # move the cursor to the beginning of the input
-    IO.write(IO.ANSI.cursor(row + 3, column) <> IO.ANSI.color(@input_text_color))
+    IO.write(IO.ANSI.cursor(row + 1, column) <> IO.ANSI.color(@input_text_color))
+
   end
 
   def draw_background do

@@ -45,7 +45,7 @@ defmodule MangaExCli.Cli do
   defp start_cli() do
     CliUI.draw_background()
 
-    CliUI.draw_input("type the manga name: ", "", true)
+    CliUI.draw_input("type the manga name: ", :input_box)
     manga_name = IO.gets("") |> String.replace("\n", "")
 
     choose_manga_language()
@@ -60,11 +60,9 @@ defmodule MangaExCli.Cli do
 
     languages_and_providers
     |> Map.keys()
-    |> CliUI.draw_input("", false, true)
+    |> CliUI.draw_input(:options)
 
-    CliUI.draw_input("Select the desired language: ", "", true)
-
-    if wrong_option, do: CliUI.draw_input("", "Wrong option. try again", false, false, length(languages_and_providers |> Map.keys()))
+    CliUI.draw_input("Select the desired language: ", :input_box, 0, wrong_option)
 
     do_choose_manga_language(languages_and_providers)
   end
@@ -82,11 +80,10 @@ defmodule MangaExCli.Cli do
   defp choose_manga_provider(manga_providers, wrong_option \\ false) do
     CliUI.draw_background()
 
-    CliUI.draw_input(manga_providers, "", false, true)
+    CliUI.draw_input(manga_providers, :options)
 
-    CliUI.draw_input("type the desired manga provider", "", true)
+    CliUI.draw_input("type the desired manga provider", :input_box, 0, wrong_option)
 
-    if wrong_option, do: CliUI.draw_input("", "Wrong option. try again", false, false, length(manga_providers))
 
     do_choose_manga_provider(manga_providers)
   end
@@ -115,17 +112,16 @@ defmodule MangaExCli.Cli do
     |> Enum.map(fn {index, {manga_name, _manga_url}} ->
       "#{index} - #{manga_name}"
     end)
-    |> CliUI.draw_input("", false, true)
+    |> CliUI.draw_input(:options)
 
+    
     CliUI.draw_input(
       "type position of manga that you want: ",
-      "",
-      true,
-      false,
-      length(mangas_with_positions)
+      :input_box,
+      length(mangas_with_positions),
+      wrong_option
     )
 
-    if wrong_option, do: CliUI.draw_input("", "Wrong option. try again", false, false, length(mangas_with_positions))
     do_choose_manga(mangas_with_positions, manga_provider, manga_name)
   end
 
@@ -136,7 +132,7 @@ defmodule MangaExCli.Cli do
     |> Enum.map(fn {index, _} -> "#{index}" end)
     |> Enum.find(&(&1 == wanted_manga))
     |> if do
-      CliUI.draw_input("you choose #{wanted_manga} - #{manga_name}")
+      CliUI.draw_input("you choose #{wanted_manga} - #{manga_name}", :message)
 
       [{_, {manga_name, manga_url}}] =
         mangas
@@ -153,7 +149,25 @@ defmodule MangaExCli.Cli do
   end
 
   defp choose_chapters(manga_url, manga_name, manga_provider) do
-    wanted_chapters = IO.gets("\nwhich chapters do you want: ") |> String.replace("\n", "")
+    CliUI.reset()
+    CliUI.draw_background()
+
+    %{chapters: chapters, special_chapters: special_chapters} =
+      MangaEx.MangaProviders.Mangahost.get_chapters(manga_url)
+
+    chapters
+    |> Enum.concat(special_chapters)
+    |> Enum.reverse()
+    |> Enum.map(&"#{manga_name} - #{&1}")
+    |> CliUI.draw_input(:options)
+
+    CliUI.draw_input(
+      "which chapters do you want: ",
+      :input_box,
+      length(chapters ++ special_chapters)
+    )
+
+    wanted_chapters = IO.gets("") |> String.replace("\n", "")
 
     if wanted_chapters in ["todos", "all"] do
       MangaExCli.download_chapters(
