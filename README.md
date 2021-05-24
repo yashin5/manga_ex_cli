@@ -6,12 +6,12 @@
 Para usar, voce precisa apenas ter instalado o https://elixir-lang.org/
 
 ## Instalação
-Acesse a pasta root do projeto e rode o comando ```curl mix deps.get```
-Feito isso, aguarde e em seguida rode ```curl mix escript.build```
+Acesse a pasta root do projeto e rode o comando ``` mix deps.get```
+Feito isso, aguarde e em seguida rode ``` mix escript.build```
 
 Agora você pode usar rodando manga_ex no seu terminal.
 
-Por enquanto só implementei para baixar todos os campitulos! quando aparecer "Witch chapter that you whant?" digite   ```curl all ```
+Por enquanto só implementei para baixar todos os campitulos! quando aparecer "Witch chapter that you whant?" digite   ``` all ```
 
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
