@@ -11,7 +11,7 @@ Feito isso, aguarde e em seguida rode ``` mix escript.build```
 
 Agora você pode usar rodando manga_ex no seu terminal.
 
-Por enquanto só implementei para baixar todos os campitulos! quando aparecer "Witch chapter that you whant?" digite   ``` all ```
+Por enquanto só implementei para baixar todos os campitulos! quando aparecer "which chapters do you want?" digite   ``` all ```
 
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
