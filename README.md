@@ -2,18 +2,17 @@
 
 **TODO: Add description**
 
-## Installation
+## Dependencias
+Para usar, voce precisa apenas ter instalado o https://elixir-lang.org/
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `manga_ex_cli` to your list of dependencies in `mix.exs`:
+## Instalação
+Acesse a pasta root do projeto e rode o comando ```curl mix deps.get```
+Feito isso, aguarde e em seguida rode ```curl mix escript.build```
 
-```elixir
-def deps do
-  [
-    {:manga_ex_cli, "~> 0.1.0"}
-  ]
-end
-```
+Agora você pode usar rodando manga_ex no seu terminal.
+
+Por enquanto só implementei para baixar todos os campitulos! quando aparecer "Witch chapter that you whant?" digite   ```curl all ```
+
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
