@@ -1,0 +1,74 @@
+defmodule MangaExCli.Views.DownloadingChapters do
+  import Ratatouille.View
+
+  alias MangaExCli.Helpers
+
+  def render(%{downloaded_percentage: percentage, greetings: greetings} = model) do
+    cols =
+      "cols"
+      |> Helpers.num()
+      |> Kernel./(2)
+      |> Float.floor()
+      |> trunc()
+
+    message = String.pad_leading(greetings, cols + 10)
+
+    blank_rows = fn rows_to_skip ->
+      Enum.map(1..rows_to_skip, fn _i ->
+        row do
+          column size: 12 do
+            label(content: "", color: :yellow)
+          end
+        end
+      end)
+    end
+
+    view(top_bar: to_bar(), bottom_bar: bottom_bar(percentage)) do
+      blank_rows.(7)
+
+      row do
+        column size: 12 do
+          label(content: message, color: :yellow)
+          blank_rows.(3)
+
+          message_when_greeting(greetings, cols)
+        end
+      end
+
+      Helpers.render_error(model)
+    end
+  end
+
+  defp bottom_bar(percentage) do
+    progress_bar(percentage: 100)
+  end
+
+  defp to_bar do
+    cols =
+      "cols"
+      |> Helpers.num()
+      |> Kernel./(2)
+      |> Float.floor()
+      |> trunc()
+
+    message = String.pad_leading("Your manga is downloading!", cols)
+
+    row do
+      column size: 12 do
+        panel do
+          label(color: :white, content: "#{message}")
+        end
+      end
+    end
+  end
+
+  defp message_when_greeting(greetings, cols) when greetings != "" do
+    message = String.pad_leading("Press ESC to go back to the beginning or Q to exit", cols + 17)
+
+    label(content: message, color: :white)
+  end
+
+  defp message_when_greeting(_greetings, _cols) do
+    label(content: "", color: :white)
+  end
+end

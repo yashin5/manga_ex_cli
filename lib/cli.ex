@@ -1,6 +1,12 @@
 defmodule MangaExCli.Cli do
   alias MangaExCli
-  alias MangaExCli.CliUI
+  alias MangaExCli.Views.SelectLanguage
+  alias MangaExCli.Views.SelectProvider
+  alias MangaExCli.Views.SelectManga
+  alias MangaExCli.Views.SelectDesiredManga
+  alias MangaExCli.Views.DownloadingChapters
+  alias MangaExCli.Views.SelectChapters
+  alias MangaExCli.States
 
   manga_ex = Path.expand("./manga_ex_cli")
   manga_ex_alias = "\nalias manga_ex='#{manga_ex}'"
@@ -35,155 +41,42 @@ defmodule MangaExCli.Cli do
       end
   end
 
-  @spec main(any) :: none
-  def main(_args \\ []) do
-    CliUI.draw_background()
-
-    start_cli()
+  def init(_context) do
+    %{
+      text: "",
+      error: "",
+      greetings: "",
+      downloaded_percentage: 0,
+      manga_downloaded?: false,
+      pages: 1,
+      actual_page: 1,
+      chapters: [],
+      desired_provider: "",
+      providers: [],
+      desired_manga: "",
+      selected_manga: "",
+      desired_chapters: "",
+      manga_list: [],
+      manga_list_with_positions: [],
+      desired_language: "",
+      providers_and_languages: MangaEx.Options.possible_languages_and_providers()
+    }
   end
 
-  defp start_cli() do
-    CliUI.draw_background()
+  defdelegate update(model, message), to: States
 
-    CliUI.draw_input("type the manga name: ", :input_box)
-    manga_name = IO.gets("") |> String.replace("\n", "")
+  def main(_), do: Ratatouille.run(__MODULE__)
 
-    choose_manga_language()
-    |> choose_manga_provider()
-    |> choose_manga(manga_name)
-  end
+  def render(model), do: do_render(model)
 
-  defp choose_manga_language(wrong_option \\ false) do
-    CliUI.draw_background()
+  defp do_render(%{desired_language: ""} = model), do: SelectLanguage.render(model)
+  defp do_render(%{desired_provider: ""} = model), do: SelectProvider.render(model)
+  defp do_render(%{selected_manga: ""} = model), do: SelectManga.render(model)
+  defp do_render(%{desired_manga: ""} = model), do: SelectDesiredManga.render(model)
 
-    languages_and_providers = MangaEx.Options.possible_languages_and_providers()
+  defp do_render(%{desired_chapters: "", manga_downloaded?: true} = model),
+    do: SelectLanguage.render(model)
 
-    languages_and_providers
-    |> Map.keys()
-    |> CliUI.draw_input(:options)
-
-    CliUI.draw_input("Select the desired language: ", :input_box, 0, wrong_option)
-
-    do_choose_manga_language(languages_and_providers)
-  end
-
-  defp do_choose_manga_language(languages_and_providers) do
-    desired_language = IO.gets("") |> String.replace("\n", "")
-
-    if desired_language in Map.keys(languages_and_providers) do
-      languages_and_providers[desired_language]
-    else
-      choose_manga_language(true)
-    end
-  end
-
-  defp choose_manga_provider(manga_providers, wrong_option \\ false) do
-    CliUI.draw_background()
-
-    CliUI.draw_input(manga_providers, :options)
-
-    CliUI.draw_input("type the desired manga provider", :input_box, 0, wrong_option)
-
-
-    do_choose_manga_provider(manga_providers)
-  end
-
-  defp do_choose_manga_provider(manga_providers) do
-    wanted_manga_provider = IO.gets("") |> String.replace("\n", "")
-
-    if wanted_manga_provider in manga_providers do
-      manga_providers
-      |> Enum.filter(&(&1 == wanted_manga_provider))
-      |> List.last()
-    else
-      choose_manga_provider(manga_providers, true)
-    end
-  end
-
-  defp choose_manga(manga_provider, manga_name, wrong_option \\ false) do
-    CliUI.draw_background()
-
-    mangas_with_positions =
-      manga_name
-      |> MangaEx.MangaProviders.Mangahost.find_mangas()
-      |> generate_array_with_index()
-
-    mangas_with_positions
-    |> Enum.map(fn {index, {manga_name, _manga_url}} ->
-      "#{index} - #{manga_name}"
-    end)
-    |> CliUI.draw_input(:options)
-
-    
-    CliUI.draw_input(
-      "type position of manga that you want: ",
-      :input_box,
-      length(mangas_with_positions),
-      wrong_option
-    )
-
-    do_choose_manga(mangas_with_positions, manga_provider, manga_name)
-  end
-
-  defp do_choose_manga(mangas, manga_provider, manga_name) do
-    wanted_manga = IO.gets("") |> String.replace("\n", "")
-
-    mangas
-    |> Enum.map(fn {index, _} -> "#{index}" end)
-    |> Enum.find(&(&1 == wanted_manga))
-    |> if do
-      CliUI.draw_input("you choose #{wanted_manga} - #{manga_name}", :message)
-
-      [{_, {manga_name, manga_url}}] =
-        mangas
-        |> Enum.filter(fn {index, {_manga_name, _manga_url}} ->
-          "#{index}" == wanted_manga
-        end)
-
-      choose_chapters(manga_url, manga_name, manga_provider)
-    else
-      CliUI.reset()
-
-      choose_manga(manga_provider, manga_name, true)
-    end
-  end
-
-  defp choose_chapters(manga_url, manga_name, manga_provider) do
-    CliUI.reset()
-    CliUI.draw_background()
-
-    %{chapters: chapters, special_chapters: special_chapters} =
-      MangaEx.MangaProviders.Mangahost.get_chapters(manga_url)
-
-    chapters
-    |> Enum.concat(special_chapters)
-    |> Enum.reverse()
-    |> Enum.map(&"#{manga_name} - #{&1}")
-    |> CliUI.draw_input(:options)
-
-    CliUI.draw_input(
-      "which chapters do you want: ",
-      :input_box,
-      length(chapters ++ special_chapters)
-    )
-
-    wanted_chapters = IO.gets("") |> String.replace("\n", "")
-
-    if wanted_chapters in ["todos", "all"] do
-      MangaExCli.download_chapters(
-        manga_url,
-        manga_name,
-        :all_chapters,
-        String.to_atom(manga_provider)
-      )
-    end
-
-    start_cli()
-  end
-
-  defp generate_array_with_index(array) do
-    1
-    |> Range.new(length(array))
-    |> Enum.zip(array)
-  end
+  defp do_render(%{desired_chapters: ""} = model), do: SelectChapters.render(model)
+  defp do_render(%{manga_downloaded?: false} = model), do: DownloadingChapters.render(model)
 end

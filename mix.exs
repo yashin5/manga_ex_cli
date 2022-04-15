@@ -16,17 +16,22 @@ defmodule MangaExCli.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      mod: {MangaExCli.Application, []},
+      extra_applications: [
+        :logger
+      ]
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:manga_ex, "~> 0.3.0"},
+      {:manga_ex, "~> 0.5.0"},
       {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
-      {:progress_bar, "> 0.0.0"}
+      {:progress_bar, "> 0.0.0"},
+      {:ratatouille, "~> 0.5.0"},
+      {:ex_termbox, "1.0.2"}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
