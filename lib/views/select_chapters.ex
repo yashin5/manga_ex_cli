@@ -2,6 +2,8 @@ defmodule MangaExCli.Views.SelectChapters do
   import Ratatouille.View
 
   alias MangaExCli.Helpers
+  alias Ratatouille.Runtime.Command
+  alias MangaExCli.PercentageMonitor
 
   def render(
         %{
@@ -30,5 +32,47 @@ defmodule MangaExCli.Views.SelectChapters do
       Helpers.pages(model)
       Helpers.render_error(model)
     end
+  end
+
+  def update_event(
+        %{
+          desired_manga: {manga_name, manga_url},
+          desired_provider: desired_provider
+        } = model
+      ) do
+    Task.async(fn ->
+      MangaExCli.download_chapters(
+        manga_url,
+        manga_name,
+        :all_chapters,
+        String.to_atom(desired_provider)
+      )
+    end)
+
+    updated_model = %{
+      model
+      | screen: :downloading_chapters,
+        desired_chapters: :ok
+    }
+
+    {updated_model, update_percent_view(updated_model)}
+  end
+
+  def update_percent_view(%{downloaded_percentage: percentage} = model) when percentage < 100 do
+    Command.new(
+      fn ->
+        {model, PercentageMonitor.get_actual_percentage()}
+      end,
+      :downloading
+    )
+  end
+
+  def update_percent_view(model) do
+    Command.new(
+      fn ->
+        model
+      end,
+      :fully_downloaded
+    )
   end
 end

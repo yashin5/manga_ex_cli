@@ -69,16 +69,10 @@ defmodule MangaExCli.Helpers do
     end
   end
 
-  def num(subcommand) do
-    case System.cmd("tput", [subcommand]) do
-      {text, 0} ->
-        text
-        |> String.trim()
-        |> String.to_integer()
-
-      _ ->
-        0
-    end
+  def generate_array_with_index(array) do
+    1
+    |> Range.new(length(array))
+    |> Enum.zip(array)
   end
 
   def render_error(model) do

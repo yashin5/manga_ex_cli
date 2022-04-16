@@ -5,31 +5,19 @@ defmodule MangaExCli.Views.DownloadingChapters do
 
   def render(%{downloaded_percentage: percentage, greetings: greetings} = model) do
     cols =
-      "cols"
-      |> Helpers.num()
-      |> Kernel./(2)
-      |> Float.floor()
-      |> trunc()
+      :io.columns()
+      |> elem(1)
+      |> div(2)
 
     message = String.pad_leading(greetings, cols + 10)
 
-    blank_rows = fn rows_to_skip ->
-      Enum.map(1..rows_to_skip, fn _i ->
-        row do
-          column size: 12 do
-            label(content: "", color: :yellow)
-          end
-        end
-      end)
-    end
-
-    view(top_bar: to_bar(), bottom_bar: bottom_bar(percentage)) do
-      blank_rows.(7)
+    view(top_bar: to_bar(cols), bottom_bar: bottom_bar(percentage)) do
+      blank_rows(7)
 
       row do
         column size: 12 do
           label(content: message, color: :yellow)
-          blank_rows.(3)
+          blank_rows(3)
 
           message_when_greeting(greetings, cols)
         end
@@ -39,18 +27,21 @@ defmodule MangaExCli.Views.DownloadingChapters do
     end
   end
 
+  defp blank_rows(rows_to_skip) do
+    Enum.map(1..rows_to_skip, fn _i ->
+      row do
+        column size: 12 do
+          label(content: "", color: :yellow)
+        end
+      end
+    end)
+  end
+
   defp bottom_bar(percentage) do
     progress_bar(percentage: percentage)
   end
 
-  defp to_bar do
-    cols =
-      "cols"
-      |> Helpers.num()
-      |> Kernel./(2)
-      |> Float.floor()
-      |> trunc()
-
+  defp to_bar(cols) do
     message = String.pad_leading("Your manga is downloading!", cols)
 
     row do

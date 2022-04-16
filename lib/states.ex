@@ -3,6 +3,11 @@ defmodule MangaExCli.States do
 
   alias MangaExCli.Cli
   alias MangaExCli.RowsMonitor
+  alias MangaExCli.Views.SelectChapters
+  alias MangaExCli.Views.SelectDesiredManga
+  alias MangaExCli.Views.SelectLanguage
+  alias MangaExCli.Views.SelectManga
+  alias MangaExCli.Views.SelectProvider
 
   @delete_keys [
     key(:delete),
@@ -120,137 +125,20 @@ defmodule MangaExCli.States do
                   %{updated_model_with_pages | error: "Invalid page"}
               end
 
-            %{desired_language: "", text: text, providers_and_languages: providers_and_languages} ->
-              language =
-                providers_and_languages
-                |> Map.keys()
-                |> Enum.filter(&(&1 == text))
+            %{desired_language: ""} ->
+              SelectLanguage.update_event(updated_model_with_pages)
 
-              case language do
-                [] ->
-                  %{updated_model_with_pages | error: "Invalid language"}
+            %{desired_provider: ""} ->
+              SelectProvider.update_event(updated_model_with_pages)
 
-                [language | _] ->
-                  %{
-                    updated_model_with_pages
-                    | desired_language: updated_model_with_pages.text,
-                      error: "",
-                      screen: :select_provider,
-                      providers: Map.get(providers_and_languages, language)
-                  }
-              end
+            %{selected_manga: ""} ->
+              SelectManga.update_event(updated_model_with_pages)
 
-            %{
-              desired_provider: "",
-              providers_and_languages: providers_and_languages,
-              text: text,
-              desired_language: desired_language
-            } ->
-              if text in (providers_and_languages
-                          |> Enum.filter(fn {language, _} -> language == desired_language end)
-                          |> Enum.flat_map(&elem(&1, 1))) do
-                %{
-                  updated_model_with_pages
-                  | screen: :select_manga,
-                    desired_provider: text,
-                    error: ""
-                }
-              else
-                %{updated_model_with_pages | error: "Invalid provider"}
-              end
+            %{desired_manga: ""} ->
+              SelectDesiredManga.update_event(updated_model_with_pages)
 
-            %{selected_manga: "", text: text, desired_provider: desired_provider} ->
-              desired_provider
-              |> String.to_atom()
-              |> MangaEx.find_mangas(text)
-              |> case do
-                {:ok, :manga_not_found} ->
-                  %{updated_model_with_pages | selected_manga: "", error: "Manga not found"}
-
-                manga_list ->
-                  %{
-                    updated_model_with_pages
-                    | selected_manga: text,
-                      manga_list: manga_list,
-                      screen: :select_desired_manga,
-                      manga_list_with_positions: generate_array_with_index(manga_list),
-                      pages: length(Enum.chunk_every(manga_list, RowsMonitor.get_rows_to_use())),
-                      error: ""
-                  }
-              end
-
-            %{
-              desired_manga: "",
-              text: inputed_option,
-              manga_list_with_positions: manga_list_with_positions,
-              desired_provider: desired_provider
-            } ->
-              {_index, desired_manga} =
-                Enum.find(manga_list_with_positions, fn {index, _} ->
-                  Integer.to_string(index) == inputed_option
-                end)
-
-              if is_nil(desired_manga) do
-                %{updated_model_with_pages | selected_manga: "", error: "Manga is not in list"}
-              else
-                {_manga_name, manga_url} = desired_manga
-
-                desired_provider
-                |> String.to_atom()
-                |> MangaEx.get_chapters(manga_url)
-                |> case do
-                  %{chapters: chapters, special_chapters: special_chapters} ->
-                    chapters_length = length(special_chapters ++ chapters)
-
-                    %{
-                      updated_model_with_pages
-                      | desired_manga: desired_manga,
-                        error: "",
-                        screen: :select_chapters,
-                        actual_page: 1,
-                        chapters:
-                          chapters
-                          |> Enum.concat(special_chapters)
-                          |> Enum.reverse()
-                          |> generate_array_with_index(),
-                        pages:
-                          Enum.chunk_every(
-                            1..chapters_length,
-                            RowsMonitor.get_rows_to_use()
-                          )
-                          |> length()
-                    }
-
-                  _ ->
-                    %{
-                      updated_model_with_pages
-                      | selected_manga: "",
-                        error: "Could not get the chapters"
-                    }
-                end
-              end
-
-            %{
-              desired_chapters: "",
-              desired_manga: {manga_name, manga_url},
-              desired_provider: desired_provider
-            } = updated_model_with_pages ->
-              Task.async(fn ->
-                MangaExCli.download_chapters(
-                  manga_url,
-                  manga_name,
-                  :all_chapters,
-                  String.to_atom(desired_provider)
-                )
-              end)
-
-              updated_model = %{
-                updated_model_with_pages
-                | screen: :downloading_chapters,
-                  desired_chapters: :ok
-              }
-
-              {updated_model, update_cmd(updated_model)}
+            %{desired_chapters: ""} ->
+              SelectChapters.update_event(updated_model_with_pages)
 
             _ ->
               updated_model_with_pages
@@ -275,7 +163,7 @@ defmodule MangaExCli.States do
       {:downloading, {model, percentage}} ->
         updated_model = %{model | downloaded_percentage: percentage}
 
-        {updated_model, update_cmd(updated_model)}
+        {updated_model, SelectChapters.update_percent_view(updated_model)}
 
       {:fully_downloaded, model} ->
         %{model | greetings: "Your manga has successfully downloaded"}
@@ -283,29 +171,5 @@ defmodule MangaExCli.States do
       _ ->
         updated_model_with_pages
     end
-  end
-
-  defp update_cmd(%{downloaded_percentage: percentage} = model) when percentage < 100 do
-    Ratatouille.Runtime.Command.new(
-      fn ->
-        {model, MangaExCli.PercentageMonitor.get_actual_percentage()}
-      end,
-      :downloading
-    )
-  end
-
-  defp update_cmd(model) do
-    Ratatouille.Runtime.Command.new(
-      fn ->
-        model
-      end,
-      :fully_downloaded
-    )
-  end
-
-  defp generate_array_with_index(array) do
-    1
-    |> Range.new(length(array))
-    |> Enum.zip(array)
   end
 end

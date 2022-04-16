@@ -20,4 +20,25 @@ defmodule MangaExCli.Views.SelectLanguage do
       Helpers.render_error(model)
     end
   end
+
+  def update_event(%{text: text, providers_and_languages: providers_and_languages} = model) do
+    providers_and_languages
+    |> Map.keys()
+    |> Enum.filter(&(&1 == text))
+    |> do_update_event(model, text, providers_and_languages)
+  end
+
+  defp do_update_event([], model, _text, _providers_and_languages) do
+    %{model | error: "Invalid language"}
+  end
+
+  defp do_update_event([language | _], model, text, providers_and_languages) do
+    %{
+      model
+      | desired_language: text,
+        error: "",
+        screen: :select_provider,
+        providers: Map.get(providers_and_languages, language)
+    }
+  end
 end
