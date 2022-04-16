@@ -40,7 +40,7 @@ defmodule MangaExCli.Views.DownloadingChapters do
   end
 
   defp bottom_bar(percentage) do
-    progress_bar(percentage: 100)
+    progress_bar(percentage: percentage)
   end
 
   defp to_bar do

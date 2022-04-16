@@ -3,14 +3,16 @@ defmodule MangaExCli.Views.SelectChapters do
 
   alias MangaExCli.Helpers
 
-  def render(%{desired_manga: {manga_name, _}, chapters: chapters, text: text} = model) do
-    filtered_mangas =
-      chapters
-      |> Enum.map(fn {index, {_, chapter}} ->
-        label(color: :white, content: "#{index} - #{manga_name} CHAP #{chapter}")
-      end)
-      |> Enum.chunk_every(9)
-      |> Enum.at(model.actual_page - 1)
+  def render(
+        %{
+          desired_manga: {manga_name, _},
+          chapters: chapters,
+          text: text
+        } = model
+      ) do
+    func_to_map_in_chunk = fn {index, {_, chapter}} ->
+      label(color: :white, content: "#{index} - #{manga_name} CHAP #{chapter}")
+    end
 
     view(top_bar: Helpers.render_welcome_message()) do
       overlay do
@@ -19,7 +21,7 @@ defmodule MangaExCli.Views.SelectChapters do
             label(content: "Type the desired chapters: " <> text <> "▌")
 
             panel title: "Chapters", height: :fill do
-              filtered_mangas
+              Helpers.chunk_by_type(model, chapters, func_to_map_in_chunk)
             end
           end
         end

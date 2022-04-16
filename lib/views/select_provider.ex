@@ -4,14 +4,6 @@ defmodule MangaExCli.Views.SelectProvider do
   alias MangaExCli.Helpers
 
   def render(%{text: text, providers: providers} = model) do
-    filtered_providers =
-      providers
-      |> Enum.filter(&String.contains?(&1, String.downcase(text)))
-      |> Enum.map(fn provider ->
-        color = if text == "", do: :white, else: :yellow
-        label(color: color, content: provider)
-      end)
-
     view(top_bar: Helpers.render_welcome_message()) do
       overlay do
         viewport do
@@ -19,7 +11,7 @@ defmodule MangaExCli.Views.SelectProvider do
             label(content: "Select the desired provider: " <> text <> "▌")
 
             panel title: "Providers", height: :fill do
-              filtered_providers
+              Helpers.filter_by_typed_text(text, providers)
             end
           end
         end
