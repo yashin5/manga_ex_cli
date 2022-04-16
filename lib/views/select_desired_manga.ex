@@ -5,10 +5,11 @@ defmodule MangaExCli.Views.SelectDesiredManga do
 
   def render(%{text: text, manga_list_with_positions: manga_list_with_positions} = model) do
     func_to_map_in_chunk = fn {index, {manga_name, _}} ->
-      if String.contains?("#{index}", text) and text != "" do
-        label(color: :yellow, content: "#{index} - #{manga_name}")
+      name_with_index = "#{index} - #{manga_name}"
+      if text == "#{index}" and text != ""  do
+        label(color: :yellow, content: name_with_index)
       else
-        label(color: :white, content: "#{index} - #{manga_name}")
+        label(color: :white, content: name_with_index)
       end
     end
 

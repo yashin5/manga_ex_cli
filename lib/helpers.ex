@@ -56,14 +56,9 @@ defmodule MangaExCli.Helpers do
   end
 
   def render_welcome_message do
-    cols =
-      "cols"
-      |> num()
-      |> Kernel./(2)
-      |> Float.floor()
-      |> trunc()
+    {:ok, cols} = :io.columns()
 
-    message = String.pad_leading("Welcome to MangaEx!", cols)
+    message = String.pad_leading("Welcome to MangaEx!", div(cols, 2))
 
     row do
       column size: 12 do
