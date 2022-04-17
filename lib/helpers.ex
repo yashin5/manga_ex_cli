@@ -21,29 +21,19 @@ defmodule MangaExCli.Helpers do
     |> Enum.at(actual_page_to_use - 1)
   end
 
+
+
   def pages(%{pages: pages, actual_page: actual_page}) do
     label do
       if pages == actual_page and pages != 1 do
-        text(
-          background: :white,
-          color: :black,
-          content: "... Page #{pages} "
-        )
+        do_pages("... Page #{pages} ")
       else
         if pages == 1 do
-          text(
-            background: :white,
-            color: :black,
-            content: " Page 1 "
-          )
+          do_pages(" Page 1 ")
         else
           for page <- 1..pages do
             if page == actual_page do
-              text(
-                background: :white,
-                color: :black,
-                content: " Page #{page} "
-              )
+              do_pages(" Page #{page} ")
             end
           end
         end
@@ -81,5 +71,13 @@ defmodule MangaExCli.Helpers do
         label(background: :red, content: model.error)
       end
     end
+  end
+
+  defp do_pages(message) do
+    text(
+          background: :white,
+          color: :black,
+          content: message
+        )
   end
 end

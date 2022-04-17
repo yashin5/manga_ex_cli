@@ -1,4 +1,5 @@
 defmodule MangaExCli.States do
+  @moduledoc false
   import Ratatouille.Constants, only: [key: 1]
 
   alias MangaExCli.Cli
@@ -18,29 +19,10 @@ defmodule MangaExCli.States do
   @enter key(:enter)
   @esc key(:esc)
 
-  def update(%{screen: screen, manga_list: manga_list, chapters: chapters} = model, message) do
+  def update(model, message) do
     RowsMonitor.update_rows()
 
-    length_to_use_as_page =
-      cond do
-        screen == :select_desired_manga and manga_list != [] ->
-          manga_list
-
-        screen == :select_chapters and chapters != [] ->
-          1..length(chapters)
-
-        true ->
-          1..1
-      end
-
-    updated_model_with_pages =
-      model
-      |> Map.put(
-        :pages,
-        length_to_use_as_page
-        |> Enum.chunk_every(RowsMonitor.get_rows_to_use())
-        |> length()
-      )
+    updated_model_with_pages = update_models_pages(model)
 
     case message do
       {:event, %{key: @esc}} ->
@@ -109,36 +91,23 @@ defmodule MangaExCli.States do
       {:event, %{key: @enter}} ->
         if updated_model_with_pages.text != "" do
           case updated_model_with_pages do
-            %{text: ":" <> text, pages: pages} ->
-              try do
-                to_page = String.to_integer(text)
-
-                case to_page in 1..pages do
-                  true ->
-                    %{updated_model_with_pages | actual_page: to_page, text: ""}
-
-                  _ ->
-                    %{updated_model_with_pages | error: "Page does not exist"}
-                end
-              rescue
-                _ ->
-                  %{updated_model_with_pages | error: "Invalid page"}
-              end
+            %{text: ":" <> text} ->
+              change_page(model, text)
 
             %{desired_language: ""} ->
-              SelectLanguage.update_event(updated_model_with_pages)
+              SelectLanguage.update(updated_model_with_pages)
 
             %{desired_provider: ""} ->
-              SelectProvider.update_event(updated_model_with_pages)
+              SelectProvider.update(updated_model_with_pages)
 
             %{selected_manga: ""} ->
-              SelectManga.update_event(updated_model_with_pages)
+              SelectManga.update(updated_model_with_pages)
 
             %{desired_manga: ""} ->
-              SelectDesiredManga.update_event(updated_model_with_pages)
+              SelectDesiredManga.update(updated_model_with_pages)
 
             %{desired_chapters: ""} ->
-              SelectChapters.update_event(updated_model_with_pages)
+              SelectChapters.update(updated_model_with_pages)
 
             _ ->
               updated_model_with_pages
@@ -170,6 +139,46 @@ defmodule MangaExCli.States do
 
       _ ->
         updated_model_with_pages
+    end
+  end
+
+  defp change_page(%{pages: pages} = model, text) do
+    try do
+      to_page = String.to_integer(text)
+
+      case to_page in 1..pages do
+        true ->
+          %{model | actual_page: to_page, text: ""}
+
+        _ ->
+          %{model | error: "Page does not exist"}
+      end
+    rescue
+      _ ->
+        %{model | error: "Invalid page"}
+    end
+  end
+
+  defp update_models_pages(model) do
+    model
+    |> Map.put(
+      :pages,
+      length_to_use_as_page(model)
+      |> Enum.chunk_every(RowsMonitor.get_rows_to_use())
+      |> length()
+    )
+  end
+
+  defp length_to_use_as_page(%{screen: screen, manga_list: manga_list, chapters: chapters}) do
+    cond do
+      screen == :select_desired_manga and manga_list != [] ->
+        manga_list
+
+      screen == :select_chapters and chapters != [] ->
+        1..length(chapters)
+
+      true ->
+        1..1
     end
   end
 end

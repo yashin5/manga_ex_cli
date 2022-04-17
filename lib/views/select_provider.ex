@@ -21,7 +21,7 @@ defmodule MangaExCli.Views.SelectProvider do
     end
   end
 
-  def update_event(
+  def update(
         %{
           providers: providers,
           text: text
@@ -29,14 +29,14 @@ defmodule MangaExCli.Views.SelectProvider do
       ) do
     providers
     |> Enum.find(&(&1 == String.downcase(text)))
-    |> do_update_event(model)
+    |> do_update(model)
   end
 
-  def do_update_event(nil, model) do
+  def do_update(nil, model) do
     %{model | error: "Invalid provider"}
   end
 
-  def do_update_event(provider, model) do
+  def do_update(provider, model) do
     %{
       model
       | screen: :select_manga,

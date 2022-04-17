@@ -34,7 +34,7 @@ defmodule MangaExCli.Views.SelectChapters do
     end
   end
 
-  def update_event(
+  def update(
         %{
           desired_manga: {manga_name, manga_url},
           desired_provider: desired_provider

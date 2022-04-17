@@ -21,18 +21,18 @@ defmodule MangaExCli.Views.SelectManga do
     end
   end
 
-  def update_event(%{desired_provider: desired_provider, text: text} = model) do
+  def update(%{desired_provider: desired_provider, text: text} = model) do
     desired_provider
     |> String.to_atom()
     |> MangaEx.find_mangas(text)
-    |> do_update_event(model, text)
+    |> do_update(model, text)
   end
 
-  defp do_update_event({:ok, :manga_not_found}, model, _text) do
+  defp do_update({:ok, :manga_not_found}, model, _text) do
     %{model | selected_manga: "", error: "Manga not found"}
   end
 
-  defp do_update_event(manga_list, model, text) do
+  defp do_update(manga_list, model, text) do
     %{
       model
       | selected_manga: text,

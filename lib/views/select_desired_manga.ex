@@ -33,31 +33,35 @@ defmodule MangaExCli.Views.SelectDesiredManga do
     end
   end
 
-  def update_event(
+  def update(
         %{
           text: inputed_option,
           manga_list_with_positions: manga_list_with_positions,
           desired_provider: desired_provider
         } = model
       ) do
-    {_index, desired_manga} =
-      Enum.find(manga_list_with_positions, fn {index, _} ->
-        Integer.to_string(index) == inputed_option
-      end)
+    manga_list_with_positions
+    |> Enum.find(fn {index, _} ->
+      Integer.to_string(index) == inputed_option
+    end)
+    |> case do
+      {_index, nil} ->
+        %{model | selected_manga: "", error: "Manga is not in list"}
 
-    if is_nil(desired_manga) do
-      %{model | selected_manga: "", error: "Manga is not in list"}
-    else
-      {_manga_name, manga_url} = desired_manga
+      nil ->
+        %{model | selected_manga: "", error: "Manga is not in list"}
 
-      desired_provider
-      |> String.to_atom()
-      |> MangaEx.get_chapters(manga_url)
-      |> do_update_event(model, desired_manga)
+      {_index, desired_manga} ->
+        {_manga_name, manga_url} = desired_manga
+
+        desired_provider
+        |> String.to_atom()
+        |> MangaEx.get_chapters(manga_url)
+        |> do_update(model, desired_manga)
     end
   end
 
-  defp do_update_event(
+  defp do_update(
          %{chapters: chapters, special_chapters: special_chapters},
          model,
          desired_manga
@@ -84,7 +88,7 @@ defmodule MangaExCli.Views.SelectDesiredManga do
     }
   end
 
-  defp do_update_event(_, model, _desired_manga) do
+  defp do_update(_, model, _desired_manga) do
     %{
       model
       | selected_manga: "",

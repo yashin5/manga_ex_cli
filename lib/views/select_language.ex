@@ -21,18 +21,18 @@ defmodule MangaExCli.Views.SelectLanguage do
     end
   end
 
-  def update_event(%{text: text, providers_and_languages: providers_and_languages} = model) do
+  def update(%{text: text, providers_and_languages: providers_and_languages} = model) do
     providers_and_languages
     |> Map.keys()
     |> Enum.filter(&(&1 == text))
-    |> do_update_event(model, text, providers_and_languages)
+    |> do_update(model, text, providers_and_languages)
   end
 
-  defp do_update_event([], model, _text, _providers_and_languages) do
+  defp do_update([], model, _text, _providers_and_languages) do
     %{model | error: "Invalid language"}
   end
 
-  defp do_update_event([language | _], model, text, providers_and_languages) do
+  defp do_update([language | _], model, text, providers_and_languages) do
     %{
       model
       | desired_language: text,
