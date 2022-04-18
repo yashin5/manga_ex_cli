@@ -41,7 +41,9 @@ defmodule MangaExCli.States do
           } ->
             Cli.init(nil)
             |> Map.merge(%{
+              total_chapters: [],
               chapters: [],
+              special_chapters: [],
               selected_manga: selected_manga,
               manga_list: manga_list,
               screen: :select_desired_manga,
@@ -169,13 +171,17 @@ defmodule MangaExCli.States do
     )
   end
 
-  defp length_to_use_as_page(%{screen: screen, manga_list: manga_list, chapters: chapters}) do
+  defp length_to_use_as_page(%{
+         screen: screen,
+         manga_list: manga_list,
+         total_chapters: total_chapters
+       }) do
     cond do
       screen == :select_desired_manga and manga_list != [] ->
         manga_list
 
-      screen == :select_chapters and chapters != [] ->
-        1..length(chapters)
+      screen == :select_chapters and total_chapters != [] ->
+        1..length(total_chapters)
 
       true ->
         1..1

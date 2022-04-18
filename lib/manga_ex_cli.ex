@@ -16,22 +16,37 @@ defmodule MangaExCli do
   # end
   alias MangaExCli.PercentageMonitor
 
-  @spec download_chapters(String.t(), String.t(), atom(), atom()) :: :ok
-  def download_chapters(manga_url, manga_name, :all_chapters, service_provider) do
-    manga_url = String.replace(manga_url, "\n", "")
+  # @spec download_chapters(String.t(), String.t(), atom(), atom()) :: :ok
+  # def download_chapters(manga_url, manga_name, :all_chapters, service_provider) do
+  #   manga_url = String.replace(manga_url, "\n", "")
 
-    %{chapters: chapters, special_chapters: special_chapters} =
-      MangaEx.get_chapters(service_provider, manga_url)
+  #   %{chapters: chapters, special_chapters: special_chapters} =
+  #     MangaEx.get_chapters(service_provider, manga_url)
 
-    chapters_count = length(chapters ++ special_chapters)
+  #   chapters_count = length(chapters ++ special_chapters)
+
+  #   chapters
+  #   |> Kernel.++(special_chapters)
+  #   |> Enum.reverse()
+  #   |> Enum.with_index()
+  #   |> Enum.each(fn chapter_and_index ->
+  #     do_download_chapters(
+  #       manga_url,
+  #       chapter_and_index,
+  #       manga_name,
+  #       chapters_count,
+  #       service_provider
+  #     )
+  #   end)
+  # end
+
+  def download_chapters(chapters, manga_name, service_provider) do
+    chapters_count = length(chapters)
 
     chapters
-    |> Kernel.++(special_chapters)
-    |> Enum.reverse()
     |> Enum.with_index()
     |> Enum.each(fn chapter_and_index ->
       do_download_chapters(
-        manga_url,
         chapter_and_index,
         manga_name,
         chapters_count,
@@ -54,7 +69,6 @@ defmodule MangaExCli do
   # end
 
   defp do_download_chapters(
-         _manga_url,
          {{chapter_url, _chapter}, _index} = chapter_and_index,
          manga_name,
          chapters_count,

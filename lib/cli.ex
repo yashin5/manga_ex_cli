@@ -61,6 +61,8 @@ defmodule MangaExCli.Cli do
       pages: 1,
       actual_page: 1,
       chapters: [],
+      special_chapters: [],
+      total_chapters: [],
       desired_provider: "",
       providers: [],
       desired_manga: "",

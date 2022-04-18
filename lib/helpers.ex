@@ -21,8 +21,6 @@ defmodule MangaExCli.Helpers do
     |> Enum.at(actual_page_to_use - 1)
   end
 
-
-
   def pages(%{pages: pages, actual_page: actual_page}) do
     label do
       if pages == actual_page and pages != 1 do
@@ -75,9 +73,9 @@ defmodule MangaExCli.Helpers do
 
   defp do_pages(message) do
     text(
-          background: :white,
-          color: :black,
-          content: message
-        )
+      background: :white,
+      color: :black,
+      content: message
+    )
   end
 end

@@ -66,7 +66,8 @@ defmodule MangaExCli.Views.SelectDesiredManga do
          model,
          desired_manga
        ) do
-    chapters_length = length(special_chapters ++ chapters)
+    total_chapters = Enum.reverse(special_chapters ++ chapters)
+    total_chapters_length = length(total_chapters)
 
     %{
       model
@@ -74,16 +75,12 @@ defmodule MangaExCli.Views.SelectDesiredManga do
         error: "",
         screen: :select_chapters,
         actual_page: 1,
-        chapters:
-          chapters
-          |> Enum.concat(special_chapters)
-          |> Enum.reverse()
-          |> Helpers.generate_array_with_index(),
+        chapters: chapters,
+        special_chapters: special_chapters,
+        total_chapters: total_chapters,
         pages:
-          Enum.chunk_every(
-            1..chapters_length,
-            RowsMonitor.get_rows_to_use()
-          )
+          1..total_chapters_length
+          |> Enum.chunk_every(RowsMonitor.get_rows_to_use())
           |> length()
     }
   end
