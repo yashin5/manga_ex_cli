@@ -132,6 +132,29 @@ defmodule MangaExCli.Views.SelectChapters do
     )
   end
 
+  defp handle_chapters(typed_chapters, possible_chapters) do
+    if String.contains?(typed_chapters, "-") do
+      handle_pontuactions(typed_chapters, possible_chapters, "-", :chapter)
+    else
+      handle_pontuactions(typed_chapters, possible_chapters, ",", "chapter")
+    end
+    |> handle_chapters_result(possible_chapters)
+  end
+
+  defp handle_chapters_result(result, possible_chapters) do
+    case result do
+      [_ | _] = chapters ->
+        Enum.map(chapters, fn chapter ->
+          Enum.find(possible_chapters, fn {_url, possible_chapter} ->
+            chapter == possible_chapter
+          end)
+        end)
+
+      error ->
+        error
+    end
+  end
+
   def handle_pontuactions(_typed_chapters, _possible_chapters, "-", :special_chapter) do
     "Special chapters only can be downloaded when type separated with commas and 'all'"
   end
@@ -181,29 +204,6 @@ defmodule MangaExCli.Views.SelectChapters do
       handle_pontuactions(typed_special_chapters, possible_chapters, ",", "special chapter")
     end
     |> handle_chapters_result(possible_chapters)
-  end
-
-  defp handle_chapters(typed_chapters, possible_chapters) do
-    if String.contains?(typed_chapters, "-") do
-      handle_pontuactions(typed_chapters, possible_chapters, "-", :chapter)
-    else
-      handle_pontuactions(typed_chapters, possible_chapters, ",", "chapter")
-    end
-    |> handle_chapters_result(possible_chapters)
-  end
-
-  defp handle_chapters_result(result, possible_chapters) do
-    case result do
-      [_ | _] = chapters ->
-        Enum.map(chapters, fn chapter ->
-          Enum.find(possible_chapters, fn {_url, possible_chapter} ->
-            chapter == possible_chapter
-          end)
-        end)
-
-      error ->
-        error
-    end
   end
 
   defp get_chapters_number(possible_chapters), do: Enum.map(possible_chapters, &elem(&1, 1))
