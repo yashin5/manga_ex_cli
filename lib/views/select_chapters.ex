@@ -90,71 +90,19 @@ defmodule MangaExCli.Views.SelectChapters do
         end
 
       String.contains?(text, "-") ->
-        [start_chapter, end_chapter] = String.split(text, "-")
-
         try do
-          teste(
-            String.to_integer(start_chapter),
-            String.to_integer(end_chapter),
-            possible_chapters,
-            :chapter
-          )
+          handle_pontuactions(text, possible_chapters, "-", :chapter)
         rescue
           _ ->
-            teste(:special_chapter)
+            handle_pontuactions(text, possible_chapters, "-", :special_chapter)
         end
-        |> case do
-          [_ | _] = chapters ->
-            Enum.map(chapters, fn chapter ->
-              Enum.find(possible_chapters, fn {_url, possible_chapter} ->
-                chapter == possible_chapter
-              end)
-            end)
-
-          error ->
-            error
-        end
+        |> handle_chapters_result(possible_chapters)
 
       String.contains?(text, ",") ->
-        chapters_to_download =
-          String.split(text, ",")
-          |> Enum.map(fn i ->
-            try do
-              String.to_integer(i)
-            rescue
-              _ -> i
-            end
-          end)
-
-        chapters_filtered =
-          Enum.map(chapters_to_download, fn chapter ->
-            Enum.find(total_chapters, fn {_url, chapter_number} ->
-              chapter_number == chapter
-            end)
-          end)
-
-        if length(chapters_filtered) == length(chapters_to_download) do
-          chapters_filtered
-        else
-          "Some chapter is invalid"
-        end
+        handle_pontuactions(text, total_chapters, ",", "chapter/special chapter")
 
       true ->
         "Invalid"
-    end
-  end
-
-  defp teste(:special_chapter) do
-    "Special chapters only can be downloaded when type separated with commas and 'all'"
-  end
-
-  defp teste(start_chapter, end_chapter, possible_chapters, :chapter) do
-    possible_chapters_number = Enum.map(possible_chapters, fn {_, number} -> number end)
-
-    if start_chapter in possible_chapters_number and end_chapter in possible_chapters_number do
-      Enum.map(start_chapter..end_chapter, & &1)
-    else
-      "Some Chapter is out of range"
     end
   end
 
@@ -184,56 +132,68 @@ defmodule MangaExCli.Views.SelectChapters do
     )
   end
 
-  defp handle_special_chapters(typed_special_chapters, possible_chapters) do
-    if String.contains?(typed_special_chapters, "-") do
-      "Special chapters only can be downloaded when type separated with commas and 'all'"
+  def handle_pontuactions(_typed_chapters, _possible_chapters, "-", :special_chapter) do
+    "Special chapters only can be downloaded when type separated with commas and 'all'"
+  end
+
+  def handle_pontuactions(typed_chapters, possible_chapters, "-", :chapter) do
+    possible_chapters_number = get_chapters_number(possible_chapters)
+
+    [start_chapter, end_chapter] =
+      typed_chapters |> String.split("-") |> Enum.map(&String.to_integer/1)
+
+    if start_chapter in possible_chapters_number and end_chapter in possible_chapters_number do
+      Enum.map(start_chapter..end_chapter, & &1)
     else
-      special_chapters = typed_special_chapters |> String.split(",") |> Enum.map(& &1)
-      possible_chapters_name = Enum.map(possible_chapters, fn {_, name} -> name end)
-
-      if Enum.all?(special_chapters, fn special_chapter ->
-           special_chapter in possible_chapters_name
-         end) do
-        special_chapters
-      else
-        "Some invalid special chapter has been typed"
-      end
-    end
-    |> case do
-      [_ | _] = special_chapters ->
-        Enum.map(special_chapters, fn special_chapter ->
-          Enum.find(possible_chapters, fn {_url, chapter} -> chapter == special_chapter end)
-        end)
-
-      error ->
-        error
+      "Some Chapter is out of range"
     end
   end
 
-  defp handle_chapters(typed_chapters, possible_chapters) do
-    possible_chapters_number = Enum.map(possible_chapters, fn {_, number} -> number end)
+  def handle_pontuactions(typed_chapters, possible_chapters, ",", type) do
+    chapters_to_download =
+      String.split(typed_chapters, ",")
+      |> Enum.map(fn i ->
+        try do
+          String.to_integer(i)
+        rescue
+          _ -> i
+        end
+      end)
 
-    if String.contains?(typed_chapters, "-") do
-      [start_chapter, end_chapter] =
-        typed_chapters |> String.split("-") |> Enum.map(&String.to_integer/1)
+    chapters_filtered =
+      Enum.map(chapters_to_download, fn chapter ->
+        Enum.find(possible_chapters, fn {_url, chapter_number} ->
+          chapter_number == chapter
+        end)
+      end)
 
-      if start_chapter in possible_chapters_number and end_chapter in possible_chapters_number do
-        Enum.map(start_chapter..end_chapter, & &1)
-      else
-        "Some Chapter is out of range"
-      end
+    if length(chapters_filtered) == length(chapters_to_download) do
+      chapters_filtered
     else
-      chapters = typed_chapters |> String.split(",") |> Enum.map(&String.to_integer/1)
-
-      if Enum.all?(chapters, fn chapter ->
-           chapter in possible_chapters_number
-         end) do
-        chapters
-      else
-        "Some invalid chapter has been typed"
-      end
+      "Some invalid #{type} is invalid"
     end
-    |> case do
+  end
+
+  defp handle_special_chapters(typed_special_chapters, possible_chapters) do
+    if String.contains?(typed_special_chapters, "-") do
+      handle_pontuactions(typed_special_chapters, possible_chapters, "-", :special_chapter)
+    else
+      handle_pontuactions(typed_special_chapters, possible_chapters, ",", "special chapter")
+    end
+    |> handle_chapters_result(possible_chapters)
+  end
+
+  defp handle_chapters(typed_chapters, possible_chapters) do
+    if String.contains?(typed_chapters, "-") do
+      handle_pontuactions(typed_chapters, possible_chapters, "-", :chapter)
+    else
+      handle_pontuactions(typed_chapters, possible_chapters, ",", "chapter")
+    end
+    |> handle_chapters_result(possible_chapters)
+  end
+
+  defp handle_chapters_result(result, possible_chapters) do
+    case result do
       [_ | _] = chapters ->
         Enum.map(chapters, fn chapter ->
           Enum.find(possible_chapters, fn {_url, possible_chapter} ->
@@ -245,4 +205,6 @@ defmodule MangaExCli.Views.SelectChapters do
         error
     end
   end
+
+  defp get_chapters_number(possible_chapters), do: Enum.map(possible_chapters, &elem(&1, 1))
 end
