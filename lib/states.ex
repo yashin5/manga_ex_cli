@@ -3,6 +3,7 @@ defmodule MangaExCli.States do
   import Ratatouille.Constants, only: [key: 1]
 
   alias MangaExCli.Cli
+  alias MangaExCli.PercentageMonitor
   alias MangaExCli.RowsMonitor
   alias MangaExCli.Views.SelectChapters
   alias MangaExCli.Views.SelectDesiredManga
@@ -28,6 +29,7 @@ defmodule MangaExCli.States do
       {:event, %{key: @esc}} ->
         case updated_model_with_pages do
           %{screen: :downloading_chapters} ->
+            PercentageMonitor.update_percentage(0)
             Cli.init(nil)
 
           %{

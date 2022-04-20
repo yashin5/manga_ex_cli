@@ -2,8 +2,8 @@ defmodule MangaExCli.Views.SelectChapters do
   import Ratatouille.View
 
   alias MangaExCli.Helpers
-  alias Ratatouille.Runtime.Command
   alias MangaExCli.PercentageMonitor
+  alias Ratatouille.Runtime.Command
 
   def render(
         %{
@@ -81,25 +81,23 @@ defmodule MangaExCli.Views.SelectChapters do
       String.contains?(text, "~") ->
         [chapters, special_chapters] = String.split(text, "~")
 
-        with [_ | _] = handled_chapters <- handle_chapters(chapters, possible_chapters),
+        with [_ | _] = handled_chapters <- handle_chapters(chapters, possible_chapters, :chapter),
              [_ | _] = handled_special_chapters <-
-               handle_special_chapters(special_chapters, possible_special_chapters) do
+               handle_chapters(special_chapters, possible_special_chapters, :special_chapter) do
           handled_special_chapters ++ handled_chapters
         else
           error -> error
         end
 
       String.contains?(text, "-") ->
-        try do
-          handle_pontuactions(text, possible_chapters, "-", :chapter)
-        rescue
-          _ ->
-            handle_pontuactions(text, possible_chapters, "-", :special_chapter)
-        end
+        text
+        |> handle_pontuactions(possible_chapters, "-")
         |> handle_chapters_result(possible_chapters)
 
       String.contains?(text, ",") ->
-        handle_pontuactions(text, total_chapters, ",", "chapter/special chapter")
+        text
+        |> handle_pontuactions(total_chapters, ",", "chapter/special chapter")
+        |> handle_chapters_result(total_chapters)
 
       true ->
         "Invalid"
@@ -132,14 +130,22 @@ defmodule MangaExCli.Views.SelectChapters do
     )
   end
 
-  defp handle_chapters(typed_chapters, possible_chapters) do
-    if String.contains?(typed_chapters, "-") do
-      handle_pontuactions(typed_chapters, possible_chapters, "-", :chapter)
-    else
-      handle_pontuactions(typed_chapters, possible_chapters, ",", "chapter")
+  Enum.each(["chapter", "special chapter"], fn type ->
+    type_to_match = type |> String.replace(" ", "_") |> String.to_atom()
+
+    defp handle_chapters(typed_chapters, possible_chapters, unquote(type_to_match)) do
+      if String.contains?(typed_chapters, "-") do
+        handle_pontuactions(
+          typed_chapters,
+          possible_chapters,
+          "-"
+        )
+      else
+        handle_pontuactions(typed_chapters, possible_chapters, ",", unquote(type))
+      end
+      |> handle_chapters_result(possible_chapters)
     end
-    |> handle_chapters_result(possible_chapters)
-  end
+  end)
 
   defp handle_chapters_result(result, possible_chapters) do
     case result do
@@ -155,26 +161,28 @@ defmodule MangaExCli.Views.SelectChapters do
     end
   end
 
-  def handle_pontuactions(_typed_chapters, _possible_chapters, "-", :special_chapter) do
-    "Special chapters only can be downloaded when type separated with commas and 'all'"
-  end
+  def handle_pontuactions(typed_chapters, possible_chapters, "-") do
+    try do
+      possible_chapters_number = get_chapters_number(possible_chapters)
 
-  def handle_pontuactions(typed_chapters, possible_chapters, "-", :chapter) do
-    possible_chapters_number = get_chapters_number(possible_chapters)
+      [start_chapter, end_chapter] =
+        typed_chapters |> String.split("-") |> Enum.map(&String.to_integer/1)
 
-    [start_chapter, end_chapter] =
-      typed_chapters |> String.split("-") |> Enum.map(&String.to_integer/1)
-
-    if start_chapter in possible_chapters_number and end_chapter in possible_chapters_number do
-      Enum.map(start_chapter..end_chapter, & &1)
-    else
-      "Some Chapter is out of range"
+      if start_chapter in possible_chapters_number and end_chapter in possible_chapters_number do
+        Enum.map(start_chapter..end_chapter, & &1)
+      else
+        "Some Chapter is out of range"
+      end
+    rescue
+      _ ->
+        "Special chapters only can be downloaded when type separated with commas and 'all'"
     end
   end
 
   def handle_pontuactions(typed_chapters, possible_chapters, ",", type) do
     chapters_to_download =
-      String.split(typed_chapters, ",")
+      typed_chapters
+      |> String.split(",")
       |> Enum.map(fn i ->
         try do
           String.to_integer(i)
@@ -191,19 +199,10 @@ defmodule MangaExCli.Views.SelectChapters do
       end)
 
     if length(chapters_filtered) == length(chapters_to_download) do
-      chapters_filtered
+      chapters_to_download
     else
       "Some invalid #{type} is invalid"
     end
-  end
-
-  defp handle_special_chapters(typed_special_chapters, possible_chapters) do
-    if String.contains?(typed_special_chapters, "-") do
-      handle_pontuactions(typed_special_chapters, possible_chapters, "-", :special_chapter)
-    else
-      handle_pontuactions(typed_special_chapters, possible_chapters, ",", "special chapter")
-    end
-    |> handle_chapters_result(possible_chapters)
   end
 
   defp get_chapters_number(possible_chapters), do: Enum.map(possible_chapters, &elem(&1, 1))
