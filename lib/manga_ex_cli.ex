@@ -39,7 +39,7 @@ defmodule MangaExCli do
          chapters_count,
          service_provider
        ) do
-    MangaEx.download_pages(service_provider, pages, manga_name, chapter)
+    MangaEx.download_pages(service_provider, pages, manga_name, chapter, 10)
     |> case do
       result when result == [] ->
         :timer.sleep(:timer.seconds(1))
