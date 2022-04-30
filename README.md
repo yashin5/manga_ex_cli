@@ -29,7 +29,7 @@ Now you can run the application by typing
 - **Esc** to go backwards
 - **Q** to exit
 - **:h** to go to help page
-- **:<page>** when a screen have more than one page, you need to use :<page> to move around them, like: :22
+- **:page** when a screen have more than one page, you need to use :<page> to move around them, like: :22
 - **-** to separate chapters in some range, like: 1-125 **It Does not work for special chapters
 - **,** to separate for each chapter, like: 1,2,3,4
 - **~** to separate chapters from special: 1-125~700.1,700.5

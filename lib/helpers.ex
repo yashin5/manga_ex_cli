@@ -89,6 +89,8 @@ defmodule MangaExCli.Helpers do
         {"Enter", "to go forwards"},
         {"Esc", "to go backwards"},
         {"Q", "to exit"},
+        {":h", "to go to help page"},
+        {":page", "when a screen have more than one page, you need to use : to move around them"},
         {"-", "to separate chapters in some range"},
         {",", "to separate for each chapter"},
         {"~",
