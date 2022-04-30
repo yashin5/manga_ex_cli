@@ -12,12 +12,12 @@ defmodule MangaExCli.Views.DownloadingChapters do
     message = String.pad_leading(greetings, cols + 10)
 
     view(top_bar: to_bar(cols), bottom_bar: bottom_bar(percentage)) do
-      blank_rows(7)
+      Helpers.blank_rows(7)
 
       row do
         column size: 12 do
           label(content: message, color: :yellow)
-          blank_rows(3)
+          Helpers.blank_rows(3)
 
           message_when_greeting(greetings, cols)
         end
@@ -25,16 +25,6 @@ defmodule MangaExCli.Views.DownloadingChapters do
 
       Helpers.render_error(model)
     end
-  end
-
-  defp blank_rows(rows_to_skip) do
-    Enum.map(1..rows_to_skip, fn _i ->
-      row do
-        column size: 12 do
-          label(content: "", color: :yellow)
-        end
-      end
-    end)
   end
 
   defp bottom_bar(percentage) do

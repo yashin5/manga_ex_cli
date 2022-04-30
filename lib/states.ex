@@ -28,6 +28,9 @@ defmodule MangaExCli.States do
     case message do
       {:event, %{key: @esc}} ->
         case updated_model_with_pages do
+          %{help?: true} ->
+            %{updated_model_with_pages | help?: false}
+
           %{screen: :downloading_chapters} ->
             PercentageMonitor.update_percentage(0)
             Cli.init(nil)
@@ -95,8 +98,11 @@ defmodule MangaExCli.States do
       {:event, %{key: @enter}} ->
         if updated_model_with_pages.text != "" do
           case updated_model_with_pages do
+            %{text: ":" <> text} when text in ["h", "H"] ->
+              %{updated_model_with_pages | help?: true}
+
             %{text: ":" <> text} ->
-              change_page(model, text)
+              change_page(updated_model_with_pages, text)
 
             %{desired_language: ""} ->
               SelectLanguage.update(updated_model_with_pages)

@@ -1,21 +1,14 @@
 defmodule MangaExCli.Cli do
-  alias MangaExCli
-  alias MangaExCli.Views.SelectLanguage
-  alias MangaExCli.Views.SelectProvider
-  alias MangaExCli.Views.SelectManga
-  alias MangaExCli.Views.SelectDesiredManga
-  alias MangaExCli.Views.DownloadingChapters
-  alias MangaExCli.Views.SelectChapters
   alias MangaExCli.States
 
-  # @screens %{
-  #   select_language: SelectLanguage,
-  #   select_provider: SelectProvider,
-  #   select_manga: SelectManga,
-  #   select_desired_manga: SelectDesiredManga,
-  #   select_chapters: SelectChapters,
-  #   downloading_chapters: DownloadingChapters
-  # }
+  @screens %{
+    select_language: MangaExCli.Views.SelectLanguage,
+    select_provider: MangaExCli.Views.SelectProvider,
+    select_manga: MangaExCli.Views.SelectManga,
+    select_desired_manga: MangaExCli.Views.SelectDesiredManga,
+    select_chapters: MangaExCli.Views.SelectChapters,
+    downloading_chapters: MangaExCli.Views.DownloadingChapters
+  }
 
   manga_ex = Path.expand("./manga_ex_cli")
   manga_ex_alias = "\nalias manga_ex='#{manga_ex}'"
@@ -53,6 +46,7 @@ defmodule MangaExCli.Cli do
   def init(_context) do
     %{
       screen: :select_language,
+      help?: false,
       text: "",
       error: "",
       greetings: "",
@@ -79,12 +73,13 @@ defmodule MangaExCli.Cli do
 
   def main(_), do: Ratatouille.run(__MODULE__)
 
-  def render(model), do: do_render(model)
+  def render(%{help?: false} = model) do
+    do_render(model)
+  end
 
-  defp do_render(%{screen: :select_language} = model), do: SelectLanguage.render(model)
-  defp do_render(%{screen: :select_provider} = model), do: SelectProvider.render(model)
-  defp do_render(%{screen: :select_manga} = model), do: SelectManga.render(model)
-  defp do_render(%{screen: :select_desired_manga} = model), do: SelectDesiredManga.render(model)
-  defp do_render(%{screen: :select_chapters} = model), do: SelectChapters.render(model)
-  defp do_render(%{screen: :downloading_chapters} = model), do: DownloadingChapters.render(model)
+  def render(_model) do
+    MangaExCli.Helpers.help()
+  end
+
+  defp do_render(%{screen: screen} = model), do: @screens[screen].render(model)
 end

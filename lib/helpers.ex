@@ -71,11 +71,54 @@ defmodule MangaExCli.Helpers do
     end
   end
 
+  def help do
+    view do
+      overlay do
+        viewport do
+          panel title: "Commands:", height: :fill do
+            commands()
+          end
+        end
+      end
+    end
+  end
+
+  defp commands do
+    Enum.map(
+      [
+        {"Enter", "to go forwards"},
+        {"Esc", "to go backwards"},
+        {"Q", "to exit"},
+        {"-", "to separate chapters in some range"},
+        {",", "to separate for each chapter"},
+        {"~",
+         "to separate chapters from special chapters. **Chapters must be in left and special chapters in the right"}
+      ],
+      fn {command, what_it_do} ->
+        label do
+          text(content: "- ", color: :white)
+          text(content: "#{command} ", color: :yellow)
+          text(content: "#{what_it_do}", color: :white)
+        end
+      end
+    )
+  end
+
   defp do_pages(message) do
     text(
       background: :white,
       color: :black,
       content: message
     )
+  end
+
+  def blank_rows(rows_to_skip) do
+    Enum.map(1..rows_to_skip, fn _i ->
+      row do
+        column size: 12 do
+          label(content: "", color: :yellow)
+        end
+      end
+    end)
   end
 end
