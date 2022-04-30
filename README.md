@@ -2,7 +2,7 @@
 
 ## About the project
 
-That project aims to turn a little more easy to download the mangas that you desire. It's hard to find complete volumes for download and it's really annoying when the place you like to read or download manga is full of ads(usually they ask you to disable the AD block).
+That project aims to turn a easier to download the mangas that you desire. It's hard to find complete volumes for download and it's really annoying when the place you like to read or download manga is full of ads(usually they ask you to disable the AD block).
 
 ### Available Languages
 - EN
