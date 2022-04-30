@@ -28,9 +28,11 @@ Now you can run the application by typing
 - **Enter** to go forwards
 - **Esc** to go backwards
 - **Q** to exit
-- **-** to separate chapters in some range
-- **,** to separate for each chapter
-- **~** to separate chapters from special 
+- **:h** to go to help page
+- **:<page>** when a screen have more than one page, you need to use :<page> to move around them, like: :22
+- **-** to separate chapters in some range, like: 1-125 **It Does not work for special chapters
+- **,** to separate for each chapter, like: 1,2,3,4
+- **~** to separate chapters from special: 1-125~700.1,700.5
 chapters. **Chapters must be in left and special chapters in the right
 - To download all chapters, you have three options:
   - **all-chapters** to download all non-special chapters 
