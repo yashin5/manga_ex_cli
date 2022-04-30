@@ -41,6 +41,8 @@ chapters. **Chapters must be in left and special chapters in the right
 
 
 ## OBS
+- All the downloaded mangas will be saved in your Downloads folder
 - When you already have a folder with the manga name, the app will not delete or remove anything.
 - The app always verify if chapter already existis in your folder before download.
 - This app is just a application CLI to a scrapper, it only download images from the listed providers.
+- We have a sleep time between each chapter do garantee that you not be block by cloudflare or something.
