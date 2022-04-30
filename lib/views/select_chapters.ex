@@ -66,11 +66,11 @@ defmodule MangaExCli.Views.SelectChapters do
     end
   end
 
-  defp get_chapters("all", %{
-         chapters: chapters
-       }) do
-    chapters
-  end
+  defp get_chapters("all-chapters", %{chapters: chapters}), do: chapters
+
+  defp get_chapters("all-special", %{special_chapters: chapters}), do: chapters
+
+  defp get_chapters("all", %{total_chapters: total_chapters}), do: total_chapters
 
   defp get_chapters(text, %{
          chapters: possible_chapters,

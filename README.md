@@ -1,20 +1,29 @@
 # MangaExCli
 
-**TODO: Add description**
+## Dependencies
+To use this, you need [elixir](https://elixir-lang.org/) and [erlang](https://www.erlang.org/downloads.html) installed.
 
-## Dependencias
-Para usar, voce precisa apenas ter instalado o https://elixir-lang.org/
+## Installation
+Go to the project's root folder and run:
 
-## Instalação
-Acesse a pasta root do projeto e rode o comando ``` mix deps.get```
-Feito isso, aguarde e em seguida rode ``` mix escript.build```
+ ``` mix deps.get```
 
-Agora você pode usar rodando manga_ex no seu terminal.
+After done, run:
 
-Por enquanto só implementei para baixar todos os campitulos! quando aparecer "which chapters do you want?" digite   ``` all ```
+``` mix escript.build```
 
+Now you can run the application by typing
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/manga_ex_cli](https://hexdocs.pm/manga_ex_cli).
+```manga_ex```
 
+## Commands
+- **Enter** to go forwards
+- **Esc** to go backwards
+- **Q** to exit
+- **-** to separate chapters in some range
+- **,** to separate for each chapter
+- **~** to separate chapters from special chapters. **Chapters must be in left and special chapters in the right
+- To download all chapters, you have three options:
+  - **all-chapters** to download all non-special chapters 
+  - **all-special** to download all special chapters
+  - **all to** download both 
